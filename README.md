@@ -32,9 +32,8 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - Next.js: A React framework for server-side rendering and static site generation.
 - WebSockets: Used for streaming real-time market data.
 - TypeScript: For type safety and improved developer experience.
-- Tailwind CSS (if used): For styling.
-- Chart.js or Recharts (if applicable): For data visualization.
-- Axios or Fetch API: For making HTTP requests (if needed).
+- Tailwind CSS: For styling.
+- Light Weight Charts and Highcharts : For data visualization.
 
 ## Learn More
 
