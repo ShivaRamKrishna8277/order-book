@@ -1,0 +1,46 @@
+@import url("https://fonts.googleapis.com/css2?family=Albert+Sans:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Jersey+20&display=swap");
+
+.backgroundColor {
+  background-color: #191b20 !important;
+}
+
+.logoFont {
+  font-family: "Jersey 20", sans-serif;
+  font-weight: 400;
+  font-size: 40px;
+}
+.brandColor {
+  color: #651fff;
+}
+.greenColor {
+  color: #73ff00;
+}
+.redColor {
+  color: #ff0000;
+}
+
+.sectionTitle {
+  font-size: 0.8rem;
+  opacity: 0.5;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #252731;
+}
+
+/* orderbook styles */
+.cellStyles {
+  padding: 10px 0;
+  border-top: 1px solid #252731;
+}
+.orderBookTable tbody tr td,
+.orderBookTable thead tr th {
+  text-align: center !important;
+}
+.orderBookTable tbody tr td:first-of-type,
+.orderBookTable thead tr th:first-of-type {
+  text-align: left !important;
+}
+.orderBookTable tbody tr td:last-of-type,
+.orderBookTable thead tr th:last-of-type {
+  text-align: right !important;
+}

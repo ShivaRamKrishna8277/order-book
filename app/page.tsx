@@ -1,101 +1,252 @@
-import Image from "next/image";
+"use client";
+import Head from "next/head";
+import styles from "./styles.module.css";
+import Orderbook from "./components/Orderbook";
+import SpreadIndicator from "./components/SpreadIndicator";
+import ImbalanceChart from "./components/ImbalanceChart";
+import MarketDepthChart from "./components/MarketDepthChart";
+import { useEffect, useState } from "react";
+
+// Define the main interface for the order book data
+export interface OrderBookData {
+  lastUpdateId: number;
+  bids: string[]; // Array of bid entries
+  asks: string[]; // Array of ask entries
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [price, setPrice] = useState<number | null>(null);
+  const [prevPrice, setPrevPrice] = useState<number | null>(null);
+  const [change24h, setChange24h] = useState<number | null>(null);
+  const [high24h, setHigh24h] = useState<number | null>(null);
+  const [low24h, setLow24h] = useState<number | null>(null);
+  const [decimals, setDecimals] = useState<number>(2);
+  const [orderBookData, setOrderBookData] = useState<OrderBookData | null>(
+    null
+  );
+  const [spreadHistory, setSpreadHistory] = useState<
+    { time: number; value: number }[]
+  >([]);
+  const [bidQuantity, setBidQuantity] = useState<number | null>(null);
+  const [askQuantity, setAskQuantity] = useState<number | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  useEffect(() => {
+    let lastProcessedTime = 0;
+
+    // Open WebSocket connections for the selected coin
+    let ws = new WebSocket("wss://stream.binance.com:9443/ws/btcusdt@trade");
+    let wsOrderBook = new WebSocket(
+      "wss://stream.binance.com:9443/ws/btcusdt@depth10@100ms"
+    );
+
+    ws.onmessage = (event) => {
+      const now = Date.now();
+      if (now - lastProcessedTime >= 1000) {
+        const stockObject = JSON.parse(event.data);
+        if (stockObject.p) {
+          setPrice((prev) => {
+            setPrevPrice(prev); // This ensures prevPrice is set before updating price
+            return parseFloat(stockObject.p);
+          });
+        }
+        setDecimals(stockObject.p > 0 && stockObject.p < 1 ? 4 : 2);
+      }
+    };
+
+    // Throttled WebSocket message handler for order book data
+    wsOrderBook.onmessage = (event) => {
+      const now = Date.now();
+      if (now - lastProcessedTime >= 1000) {
+        lastProcessedTime = now;
+        const data = JSON.parse(event.data);
+
+        // Process Order Book Data
+        setOrderBookData({
+          lastUpdateId: data.lastUpdateId,
+          bids: data.bids,
+          asks: data.asks,
+        });
+
+        if (data.bids.length > 0 && data.asks.length > 0) {
+          const highestBid = Math.max(
+            ...data.bids.map((bid: string[]) => parseFloat(bid[0]))
+          );
+          const lowestAsk = Math.min(
+            ...data.asks.map((ask: string[]) => parseFloat(ask[0]))
+          );
+          const spreadValue = lowestAsk - highestBid;
+          const currentTime = Math.floor(Date.now() / 1000);
+
+          setSpreadHistory((prevHistory) => {
+            const updatedHistory = [
+              ...prevHistory,
+              { time: currentTime, value: spreadValue },
+            ];
+            if (updatedHistory.length > 60) {
+              updatedHistory.shift(); // Remove the oldest entry
+            }
+            return updatedHistory;
+          });
+
+          let totalBid = 0;
+          data.bids.forEach((bid: string[]) => {
+            totalBid += parseFloat(bid[1]);
+          });
+          setBidQuantity(totalBid);
+
+          let totalAsk = 0;
+          data.asks.forEach((ask: string[]) => {
+            totalAsk += parseFloat(ask[1]);
+          });
+          setAskQuantity(totalAsk);
+        }
+      }
+    };
+
+    const fetchMarketData = async () => {
+      try {
+        const response = await fetch(
+          "https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT"
+        );
+        const data = await response.json();
+        setChange24h(parseFloat(data.priceChange));
+        setHigh24h(parseFloat(data.highPrice));
+        setLow24h(parseFloat(data.lowPrice));
+      } catch (error) {
+        console.error("Error fetching market data:", error);
+      }
+    };
+
+    fetchMarketData();
+
+    return () => {
+      ws.close();
+      wsOrderBook.close();
+    };
+  }, []);
+
+  return (
+    <div>
+      <Head>
+        <title>Crypto Book</title>
+        <meta
+          name="description"
+          content="Live BTC-USD Orderbook and Market Indicators"
+        />
+      </Head>
+      <main>
+        {/* Nav Bar */}
+        <nav className={`px-3 ${styles.backgroundColor} text-center`}>
+          <h1 className={styles.logoFont}>
+            ORDER <span className={styles.brandColor}>BOOK</span>
+          </h1>
+        </nav>
+
+        <div className="max-w-[1000px] mx-auto py-5 px-3">
+          {/* General Details */}
+          <div className={`assetDetail ${styles.backgroundColor} rounded p-3`}>
+            <ul className="flex flex-col md:flex-row md:items-center md:gap-8 gap-3">
+              <li>
+                <h1 className={`${styles.brandColor} text-3xl font-bold`}>
+                  BTCUSDT
+                </h1>
+              </li>
+              <li>
+                <p className="opacity-50 text-[9px]">Current Price</p>
+                <h1
+                  className={`text-xl ${
+                    price !== null && prevPrice !== null
+                      ? price > prevPrice
+                        ? "text-[#73FF00]" // Green for increase
+                        : price < prevPrice
+                        ? "text-[#ff0000]" // Red for decrease
+                        : "text-white" // White for no change
+                      : ""
+                  }`}
+                >
+                  {price !== null ? price.toFixed(decimals) : "Loading..."}
+                </h1>
+              </li>
+              <li>
+                <p className="opacity-50 text-[9px]">24H Change</p>
+                <h1
+                  className={`text-xl ${
+                    change24h !== null
+                      ? change24h > 0
+                        ? "text-[#73FF00]"
+                        : change24h < 0
+                        ? "text-[#ff0000]"
+                        : "text-white"
+                      : ""
+                  }`}
+                >
+                  {change24h !== null
+                    ? change24h.toFixed(decimals)
+                    : "Loading..."}
+                </h1>
+              </li>
+              <li>
+                <p className="opacity-50 text-[9px]">24H High</p>
+                <h1 className="text-xl">
+                  {high24h !== null ? high24h.toFixed(decimals) : "Loading..."}
+                </h1>
+              </li>
+              <li>
+                <p className="opacity-50 text-[9px]">24H Low</p>
+                <h1 className="text-xl">
+                  {low24h !== null ? low24h.toFixed(decimals) : "Loading..."}
+                </h1>
+              </li>
+            </ul>
+          </div>
+          {/* General Details End */}
+
+          {/* Orderbook Component */}
+          {orderBookData ? (
+            <Orderbook
+              ltp={price}
+              lastUpdateId={orderBookData.lastUpdateId}
+              bids={orderBookData.bids}
+              asks={orderBookData.asks}
+              prevPrice={prevPrice}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          ) : (
+            <div
+              className={`w-full p-3 text-center ${styles.backgroundColor} rounded mt-5`}
+            >
+              Loading Order Book...
+            </div>
+          )}
+
+          {/* Spread Indicator Components */}
+          {spreadHistory.length > 0 ? (
+            <SpreadIndicator spreadHistory={spreadHistory} />
+          ) : (
+            <div
+              className={`w-full p-3 text-center ${styles.backgroundColor} rounded mt-5`}
+            >
+              Loading Spread Indicator...
+            </div>
+          )}
+
+          {/* Imbalace Chart Component */}
+          {bidQuantity !== null && askQuantity !== null ? (
+            <ImbalanceChart
+              bidQuantity={bidQuantity}
+              askQuantity={askQuantity}
+            />
+          ) : (
+            <div
+              className={`w-full p-3 text-center ${styles.backgroundColor} rounded mt-5`}
+            >
+              Loading Imbalance Indicator...
+            </div>
+          )}
+
+          {/* Market Depth Chart Component */}
+          <MarketDepthChart />
         </div>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
