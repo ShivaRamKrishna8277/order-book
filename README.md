@@ -1,30 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Project Overview
+
+This project, Order Book, is a real-time cryptocurrency order book and market indicator platform, built using Next.js. It displays order book data, price movements, and other market insights for various cryptocurrencies.
 
 ## Getting Started
 
-First, run the development server:
+First, clone the repository and install the dependencies:
+
+```bash
+git clone https://github.com/ShivaRamKrishna8277/order-book.git
+cd order-book
+npm install
+```
+
+Run the development server:
 
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Assumptions and Libraries Used
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Assumptions
+
+- The project is built to support real-time cryptocurrency market data using WebSockets.
+- The app uses Binance's API for market data streaming.
+
+## Libraries Used
+
+- Next.js: A React framework for server-side rendering and static site generation.
+- WebSockets: Used for streaming real-time market data.
+- TypeScript: For type safety and improved developer experience.
+- Tailwind CSS (if used): For styling.
+- Chart.js or Recharts (if applicable): For data visualization.
+- Axios or Fetch API: For making HTTP requests (if needed).
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Next.js Documentation – Explore the features and API.
+- Learn Next.js – Interactive learning tutorial.
