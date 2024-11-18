@@ -22,8 +22,6 @@ yarn dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Assumptions and Libraries Used
-
 ## Assumptions
 
 - The project is built to support real-time cryptocurrency market data using WebSockets.
