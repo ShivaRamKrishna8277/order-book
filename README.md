@@ -37,5 +37,5 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Learn More
 
-- [https://nextjs.org/docs](Next.js Documentation) – Explore the features and API.
-- [https://nextjs.org/learn](Learn Next.js) – Interactive learning tutorial.
+- Next.js Documentation – Explore the features and API.
+- Learn Next.js – Interactive learning tutorial.
