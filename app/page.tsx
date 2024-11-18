@@ -10,8 +10,8 @@ import { useEffect, useState } from "react";
 // Define the main interface for the order book data
 export interface OrderBookData {
   lastUpdateId: number;
-  bids: string[]; // Array of bid entries
-  asks: string[]; // Array of ask entries
+  bids: string[];
+  asks: string[];
 }
 
 export default function Home() {
@@ -33,7 +33,7 @@ export default function Home() {
   useEffect(() => {
     let lastProcessedTime = 0;
 
-    // Open WebSocket connections for the selected coin
+    // Establishing Web Sockets Connection
     let ws = new WebSocket("wss://stream.binance.com:9443/ws/btcusdt@trade");
     let wsOrderBook = new WebSocket(
       "wss://stream.binance.com:9443/ws/btcusdt@depth10@100ms"
@@ -45,7 +45,7 @@ export default function Home() {
         const stockObject = JSON.parse(event.data);
         if (stockObject.p) {
           setPrice((prev) => {
-            setPrevPrice(prev); // This ensures prevPrice is set before updating price
+            setPrevPrice(prev);
             return parseFloat(stockObject.p);
           });
         }
@@ -53,7 +53,7 @@ export default function Home() {
       }
     };
 
-    // Throttled WebSocket message handler for order book data
+    // webSocket message handler for order book data
     wsOrderBook.onmessage = (event) => {
       const now = Date.now();
       if (now - lastProcessedTime >= 1000) {
@@ -103,6 +103,7 @@ export default function Home() {
       }
     };
 
+    // webSocket message handler for coin general data
     const fetchMarketData = async () => {
       try {
         const response = await fetch(
