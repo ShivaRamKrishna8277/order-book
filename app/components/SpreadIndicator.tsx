@@ -50,7 +50,7 @@ export default function SpreadIndicator({
         secondsVisible: true,
       });
 
-      // Set the array of objects as data
+      // chart data
       areaSeries.setData(
         spreadHistory.map(({ time, value }) => ({ time, value }))
       );
@@ -59,7 +59,7 @@ export default function SpreadIndicator({
         chart.remove();
       };
     }
-  }, [spreadHistory]); // Re-run when spreadHistory changes
+  }, [spreadHistory]);
 
   return (
     <div className={`${styles.backgroundColor} p-3 px-5 my-4 rounded`}>

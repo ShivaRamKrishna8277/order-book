@@ -10,9 +10,9 @@ interface props {
 export default function ImbalanceChart({ bidQuantity, askQuantity }: props) {
   const totalQuantity = bidQuantity + askQuantity;
 
-  // Calculate bid width as a percentage of total width
+  // to calculate bid and ask bar width's
   const bidWidthPercent = (bidQuantity / totalQuantity) * 100;
-  const askWidthPercent = 100 - bidWidthPercent; // Remaining width
+  const askWidthPercent = 100 - bidWidthPercent;
 
   return (
     <div className={`${styles.backgroundColor} p-3 px-5 my-4 rounded`}>

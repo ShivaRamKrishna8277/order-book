@@ -12,6 +12,7 @@ export default function MarketDepthChart() {
   );
   let lastProcessedTime = 0;
 
+  // websocket message handler for orderbook data
   ws.onmessage = (event: any) => {
     const now = Date.now();
     if (now - lastProcessedTime >= 1000) {
@@ -28,6 +29,8 @@ export default function MarketDepthChart() {
       setAskData(asks);
     }
   };
+
+  // chart settings
   const options = {
     accessibility: {
       enabled: false,

@@ -1,7 +1,5 @@
 "use client";
 import styles from "../styles.module.css";
-
-// Main interface for the order book data
 export interface OrderBookData {
   lastUpdateId: number;
   ltp: number | null;
